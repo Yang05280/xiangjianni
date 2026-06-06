@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>想见你 💕</title>
+  <!-- PWA 相关 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#FF6B81">
+  
+  <style>
+    /* ===== 全局样式 ===== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+      background: linear-gradient(180deg, #FFF5F5 0%, #FFE4E6 100%);
+      min-height: 100vh;
+      padding: 20px;
+      padding-bottom: 30px;
+    }
+    
+    .container { max-width: 420px; margin: 0 auto; }
+
+    /* ===== 顶部天气栏 ===== */
+    .weather-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      background: rgba(255,255,255,0.88);
+      border-radius: 20px;
+      padding: 18px 16px;
+      box-shadow: 0 2px 16px rgba(255,107,129,0.12);
+    }
+    .city-card { text-align: center; flex: 1; }
+    .city-label {
+      font-size: 11px; color: #999;
+      background: #f5f5f5; padding: 2px 12px;
+      border-radius: 10px; display: inline-block;
+    }
+    .city-name { font-size: 14px; font-weight: 600; margin-top: 4px; }
+    .temp { font-size: 32px; font-weight: bold; color: #FF6B81; }
+    .temp-unit { font-size: 16px; color: #FF6B81; }
+    .heart-symbol { font-size: 28px; margin: 0 8px; }
+
+    .temp-warning {
+      background: #FFF3CD; color: #856404;
+      padding: 8px 16px; border-radius: 12px;
+      font-size: 13px; margin-top: 10px; text-align: center;
+    }
+
+    /* ===== 倒计时 ===== */
+    .countdown-section { text-align: center; margin-top: 32px; }
+    .countdown-title { font-size: 16px; color: #FF6B81; font-weight: 600; }
+    .countdown-number {
+      font-size: 80px; font-weight: bold; color: #FF6B81;
+      line-height: 1.1; margin-top: 8px;
+      text-shadow: 0 2px 12px rgba(255,107,129,0.25);
+    }
+    .countdown-unit-text { font-size: 18px; color: #FF6B81; }
+    .countdown-detail {
+      display: flex; justify-content: center; gap: 16px;
+      margin-top: 10px; font-size: 20px; color: #666;
+      font-weight: 500;
+    }
+    .countdown-detail span { min-width: 45px; }
+    .meet-info { margin-top: 8px; font-size: 13px; color: #999; }
+
+    /* ===== 情话卡片 ===== */
+    .quote-card {
+      background: rgba(255,255,255,0.9);
+      border-radius: 20px; padding: 28px 24px;
+      margin-top: 28px; text-align: center;
+      box-shadow: 0 2px 16px rgba(255,107,129,0.08);
+    }
+    .quote-icon { font-size: 32px; }
+    .quote-text {
+      font-size: 17px; color: #444;
+      margin-top: 12px; line-height: 1.8;
+    }
+
+    /* ===== 相爱天数 ===== */
+    .days-bar {
+      text-align: center; margin-top: 24px;
+      font-size: 15px; color: #888;
+    }
+    .days-number {
+      font-size: 28px; font-weight: bold; color: #FF6B81;
+    }
+
+    /* ===== 设置区 ===== */
+    .settings-section { margin-top: 32px; }
+    .settings-title {
+      font-size: 14px; color: #999; margin-bottom: 12px;
+      text-align: center;
+    }
+    .settings-card {
+      background: rgba(255,255,255,0.88);
+      border-radius: 20px; padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+    .setting-row {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 14px;
+    }
+    .setting-row:last-child { margin-bottom: 0; }
+    .setting-label { font-size: 14px; color: #555; }
+    .setting-input {
+      border: 1px solid #eee; border-radius: 10px;
+      padding: 8px 12px; font-size: 14px;
+      width: 120px; text-align: right;
+      background: #fafafa;
+    }
+    .setting-input:focus { outline: none; border-color: #FF6B81; }
+    .save-btn {
+      background: #FF6B81; color: white; border: none;
+      border-radius: 12px; padding: 10px 0;
+      font-size: 15px; font-weight: 600;
+      width: 100%; margin-top: 12px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .save-btn:active { transform: scale(0.97); opacity: 0.9; }
+
+    /* ===== 密码锁 ===== */
+    .lock-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(180deg, #FF6B81 0%, #FF8FA3 100%);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999;
+    }
+    .lock-box {
+      background: white; border-radius: 24px;
+      padding: 40px 32px; width: 300px; text-align: center;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+    }
+    .lock-icon { font-size: 48px; }
+    .lock-title { font-size: 20px; font-weight: 600; color: #FF6B81; margin-top: 12px; }
+    .lock-sub { font-size: 13px; color: #999; margin-top: 6px; }
+    .lock-input {
+      border: 2px solid #FFE4E6; border-radius: 14px;
+      padding: 12px; font-size: 20px; text-align: center;
+      width: 100%; margin-top: 20px; letter-spacing: 8px;
+    }
+    .lock-input:focus { outline: none; border-color: #FF6B81; }
+    .lock-btn {
+      background: #FF6B81; color: white; border: none;
+      border-radius: 14px; padding: 12px 0; font-size: 16px;
+      width: 100%; margin-top: 16px; cursor: pointer;
+      font-weight: 600;
+    }
+    .lock-error { color: #e74c3c; font-size: 13px; margin-top: 10px; display: none; }
+
+    /* ===== 页脚 ===== */
+    .footer {
+      text-align: center; margin-top: 40px;
+      font-size: 12px; color: #ccc;
+    }
+
+    /* ===== 加载动画 ===== */
+    .loading { text-align: center; padding: 60px 0; color: #FF6B81; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<!-- ========== 密码锁界面 ========== -->
+<div class="lock-overlay" id="lockOverlay">
+  <div class="lock-box">
+    <div class="lock-icon">🔐</div>
+    <div class="lock-title">想见你</div>
+    <div class="lock-sub">只有你和她的秘密空间</div>
+    <input type="password" class="lock-input" id="lockInput" maxlength="6" placeholder="请输入密码">
+    <button class="lock-btn" onclick="unlock()">进入 💕</button>
+    <div class="lock-error" id="lockError">❌ 密码不对哦，再试试~</div>
+  </div>
+</div>
+
+<div class="container" id="mainContent" style="display:none;">
+  
+  <!-- ===== 天气栏 ===== -->
+  <div class="weather-bar">
+    <div class="city-card">
+      <div class="city-label">我</div>
+      <div class="city-name" id="myCityName">加载中</div>
+      <div class="temp"><span id="myTemp">--</span><span class="temp-unit">°C</span></div>
+    </div>
+    <div class="heart-symbol">❤️</div>
+    <div class="city-card">
+      <div class="city-label">TA</div>
+      <div class="city-name" id="partnerCityName">加载中</div>
+      <div class="temp"><span id="partnerTemp">--</span><span class="temp-unit">°C</span></div>
+    </div>
+  </div>
+  <div class="temp-warning" id="tempWarning" style="display:none;"></div>
+
+  <!-- ===== 倒计时 ===== -->
+  <div class="countdown-section">
+    <div class="countdown-title">💕 距离见面还有 💕</div>
+    <div class="countdown-number" id="countdownDays">0</div>
+    <div class="countdown-unit-text">天</div>
+    <div class="countdown-detail">
+      <span id="countdownHours">00</span>时
+      <span id="countdownMinutes">00</span>分
+      <span id="countdownSeconds">00</span>秒
+    </div>
+    <div class="meet-info" id="meetInfo">加载中...</div>
+  </div>
+
+  <!-- ===== 情话 ===== -->
+  <div class="quote-card">
+    <div class="quote-icon">💌</div>
+    <div class="quote-text" id="quoteText">加载中...</div>
+  </div>
+
+  <!-- ===== 相爱天数 ===== -->
+  <div class="days-bar">
+    我们已相爱 <span class="days-number" id="loveDays">0</span> 天
+  </div>
+
+  <!-- ===== 设置区 ===== -->
+  <div class="settings-section">
+    <div class="settings-title">⚙️ 设置（只有你能看到）</div>
+    <div class="settings-card">
+      <div class="setting-row">
+        <span class="setting-label">我的城市</span>
+        <input class="setting-input" id="myCityInput" placeholder="如 北京">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">TA的城市</span>
+        <input class="setting-input" id="partnerCityInput" placeholder="如 上海">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">下次见面日期</span>
+        <input class="setting-input" id="meetDateInput" type="date">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">在一起日期</span>
+        <input class="setting-input" id="startDateInput" type="date">
+      </div>
+      <button class="save-btn" onclick="saveSettings()">💾 保存设置</button>
+    </div>
+  </div>
+
+  <div class="footer">💕 给最爱的你 💕</div>
+</div>
+
+<script>
+  // ===================== 密码配置 =====================
+  // ★★★ 改成你和女朋友约定的密码！数字或字母都可以 ★★★
+  const CORRECT_PASSWORD = '1108'
+
+  // ===================== 情话库 =====================
+  const QUOTES = [
+    '努力奔向我的小妤宝宝 🏃‍♂️💕✨'
+  ]
+
+  // ===================== 加密锁 =====================
+  function unlock() {
+    const pwd = document.getElementById('lockInput').value
+    if (pwd === CORRECT_PASSWORD) {
+      document.getElementById('lockOverlay').style.display = 'none'
+      document.getElementById('mainContent').style.display = 'block'
+      initApp()
+    } else {
+      document.getElementById('lockError').style.display = 'block'
+      document.getElementById('lockInput').value = ''
+      setTimeout(() => {
+        document.getElementById('lockError').style.display = 'none'
+      }, 2000)
+    }
+  }
+
+  // 回车键解锁
+  document.getElementById('lockInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') unlock()
+  })
+
+  // ===================== 主程序 =====================
+  function initApp() {
+    loadSettings()
+    updateCountdown()
+    updateLoveDays()
+    updateQuote()
+    
+    // 如果设置了城市，获取天气
+    const myCity = localStorage.getItem('myCity')
+    if (myCity) fetchWeather()
+    
+    // 每一秒更新倒计时
+    setInterval(() => {
+      updateCountdown()
+    }, 1000)
+    
+    // 每30分钟刷新天气
+    setInterval(() => {
+      if (localStorage.getItem('myCity')) fetchWeather()
+    }, 30 * 60 * 1000)
+  }
+
+  // ===================== 保存/加载设置 =====================
+  function saveSettings() {
+    const myCity = document.getElementById('myCityInput').value.trim()
+    const partnerCity = document.getElementById('partnerCityInput').value.trim()
+    const meetDate = document.getElementById('meetDateInput').value
+    const startDate = document.getElementById('startDateInput').value
+
+    localStorage.setItem('myCity', myCity)
+    localStorage.setItem('partnerCity', partnerCity)
+    localStorage.setItem('meetDate', meetDate)
+    localStorage.setItem('startDate', startDate)
+
+    // 刷新界面
+    document.getElementById('myCityName').textContent = myCity || '未设置'
+    document.getElementById('partnerCityName').textContent = partnerCity || '未设置'
+    updateCountdown()
+    updateLoveDays()
+    
+    // 获取天气
+    if (myCity) fetchWeather()
+
+    // 保存成功的反馈
+    const btn = document.querySelector('.save-btn')
+    btn.textContent = '✅ 已保存！'
+    setTimeout(() => { btn.textContent = '💾 保存设置' }, 1500)
+  }
+
+  function loadSettings() {
+    // 首次使用：把默认城市存入 localStorage，天气才能生效
+    if (!localStorage.getItem('myCity')) {
+      localStorage.setItem('myCity', '抚州')
+    }
+    if (!localStorage.getItem('partnerCity')) {
+      localStorage.setItem('partnerCity', '南宁')
+    }
+
+    const myCity = localStorage.getItem('myCity')
+    const partnerCity = localStorage.getItem('partnerCity')
+    const meetDate = localStorage.getItem('meetDate') || ''
+    const startDate = localStorage.getItem('startDate') || ''
+
+    document.getElementById('myCityInput').value = myCity
+    document.getElementById('partnerCityInput').value = partnerCity
+    document.getElementById('meetDateInput').value = meetDate
+    document.getElementById('startDateInput').value = startDate
+
+    document.getElementById('myCityName').textContent = myCity
+    document.getElementById('partnerCityName').textContent = partnerCity
+  }
+
+  // ===================== 倒计时 =====================
+  function updateCountdown() {
+    const meetDate = localStorage.getItem('meetDate')
+    if (!meetDate) {
+      document.getElementById('countdownDays').textContent = '--'
+      document.getElementById('meetInfo').textContent = '👆 在上方设置下次见面日期吧～'
+      return
+    }
+
+    const now = new Date()
+    const target = new Date(meetDate + 'T23:59:59')
+    const diff = target - now
+
+    if (diff <= 0) {
+      document.getElementById('countdownDays').textContent = '🎉'
+      document.getElementById('countdownHours').textContent = '00'
+      document.getElementById('countdownMinutes').textContent = '00'
+      document.getElementById('countdownSeconds').textContent = '00'
+      document.getElementById('meetInfo').textContent = '💥 就是今天！马上要见到TA了！'
+      return
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+
+    document.getElementById('countdownDays').textContent = days
+    document.getElementById('countdownHours').textContent = String(hours).padStart(2, '0')
+    document.getElementById('countdownMinutes').textContent = String(minutes).padStart(2, '0')
+    document.getElementById('countdownSeconds').textContent = String(seconds).padStart(2, '0')
+    
+    const partnerCity = localStorage.getItem('partnerCity') || 'TA的城市'
+    document.getElementById('meetInfo').textContent = `📍 在 ${partnerCity} 见！`
+  }
+
+  // ===================== 相爱天数 =====================
+  function updateLoveDays() {
+    const startDate = localStorage.getItem('startDate')
+    if (!startDate) {
+      document.getElementById('loveDays').textContent = '--'
+      return
+    }
+    const start = new Date(startDate)
+    const now = new Date()
+    const diff = now - start
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    document.getElementById('loveDays').textContent = days >= 0 ? days : 0
+  }
+
+  // ===================== 每日情话 =====================
+  function updateQuote() {
+    const today = new Date()
+    const startOfYear = new Date(today.getFullYear(), 0, 0)
+    const diff = today - startOfYear
+    const oneDay = 24 * 60 * 60 * 1000
+    const dayOfYear = Math.floor(diff / oneDay)
+    const quote = QUOTES[dayOfYear % QUOTES.length]
+    document.getElementById('quoteText').textContent = quote
+  }
+
+  // ===================== 天气（免费API） =====================
+  // 使用 Open-Meteo API（纯 JSON，免费，无需 Key）
+  async function fetchWeather() {
+    const myCity = localStorage.getItem('myCity')
+    const partnerCity = localStorage.getItem('partnerCity')
+    if (!myCity) return
+
+    async function getTemp(city, elId) {
+      try {
+        // 1. 查城市坐标（如果查不到，自动加"市"再试一次）
+        let geoRes = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=zh`
+        )
+        let geoData = await geoRes.json()
+        if (!geoData.results || geoData.results.length === 0) {
+          geoRes = await fetch(
+            `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city + '市')}&count=1&language=zh`
+          )
+          geoData = await geoRes.json()
+        }
+        if (!geoData.results || geoData.results.length === 0) {
+          document.getElementById(elId).textContent = '--'
+          return null
+        }
+        const { latitude, longitude } = geoData.results[0]
+
+        // 2. 查当前温度
+        const weatherRes = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m`
+        )
+        const weatherData = await weatherRes.json()
+        const temp = Math.round(weatherData.current.temperature_2m)
+        document.getElementById(elId).textContent = temp
+        return temp
+      } catch {
+        document.getElementById(elId).textContent = '--'
+        return null
+      }
+    }
+
+    const t1 = await getTemp(myCity, 'myTemp')
+    const t2 = partnerCity ? await getTemp(partnerCity, 'partnerTemp') : null
+
+    if (t1 !== null && t2 !== null) {
+      const diff = Math.abs(t1 - t2)
+      if (diff >= 8) {
+        const warn = document.getElementById('tempWarning')
+        warn.textContent = `⚠️ 温差 ${diff}°C，记得提醒TA添衣哦！`
+        warn.style.display = 'block'
+      } else {
+        document.getElementById('tempWarning').style.display = 'none'
+      }
+    }
+  }
+</script>
+</body>
+</html>
