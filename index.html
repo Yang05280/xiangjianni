@@ -130,6 +130,20 @@
       cursor: pointer; transition: all 0.2s;
     }
     .save-btn:active { transform: scale(0.97); opacity: 0.9; }
+    .sync-btn {
+      background: #4A90D9; color: white; border: none;
+      border-radius: 12px; padding: 10px 0;
+      font-size: 15px; font-weight: 600;
+      width: 100%; margin-top: 8px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .sync-btn:active { transform: scale(0.97); opacity: 0.9; }
+    .copy-btn {
+      background: #4A90D9; color: white; border: none;
+      border-radius: 10px; padding: 6px 20px;
+      font-size: 13px; margin-top: 6px;
+      cursor: pointer;
+    }
 
     /* ===== 密码锁 ===== */
     .lock-overlay {
@@ -248,6 +262,12 @@
         <input class="setting-input" id="startDateInput" type="date">
       </div>
       <button class="save-btn" onclick="saveSettings()">💾 保存设置</button>
+      <button class="sync-btn" onclick="generateSyncLink()">📤 同步给TA</button>
+    </div>
+    <div id="syncLinkBox" style="display:none; margin-top:12px; text-align:center;">
+      <div style="font-size:12px; color:#999; margin-bottom:6px;">把这个链接发给你女朋友👇</div>
+      <textarea id="syncLinkText" readonly onclick="this.select()" style="width:100%; height:60px; border:1px solid #FF6B81; border-radius:10px; padding:8px; font-size:12px; color:#333; background:#fff5f5; resize:none;"></textarea>
+      <button class="copy-btn" onclick="copySyncLink()">📋 复制链接</button>
     </div>
   </div>
 
@@ -255,6 +275,9 @@
 </div>
 
 <script>
+  // ===================== 页面加载先检查同步 =====================
+  checkSync()
+
   // ===================== 密码配置 =====================
   // ★★★ 改成你和女朋友约定的密码！数字或字母都可以 ★★★
   const CORRECT_PASSWORD = '1108'
@@ -284,6 +307,26 @@
   document.getElementById('lockInput').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') unlock()
   })
+
+  // ===================== 检查同步参数 =====================
+  function checkSync() {
+    const urlParams = new URLSearchParams(window.location.search)
+    const syncData = urlParams.get('sync')
+    if (syncData) {
+      const data = new URLSearchParams(syncData)
+      const myCity = data.get('myCity')
+      const partnerCity = data.get('partnerCity')
+      const meetDate = data.get('meetDate')
+      const startDate = data.get('startDate')
+      if (myCity) localStorage.setItem('myCity', myCity)
+      if (partnerCity) localStorage.setItem('partnerCity', partnerCity)
+      if (meetDate) localStorage.setItem('meetDate', meetDate)
+      if (startDate) localStorage.setItem('startDate', startDate)
+      // 清除 URL 参数，刷新页面
+      window.history.replaceState({}, document.title, window.location.pathname)
+      location.reload()
+    }
+  }
 
   // ===================== 主程序 =====================
   function initApp() {
@@ -419,6 +462,36 @@
   }
 
   // ===================== 展开/收起设置 =====================
+  // ===================== 生成同步链接 =====================
+  function generateSyncLink() {
+    // 先保存当前设置
+    saveSettings()
+    
+    const myCity = localStorage.getItem('myCity') || ''
+    const partnerCity = localStorage.getItem('partnerCity') || ''
+    const meetDate = localStorage.getItem('meetDate') || ''
+    const startDate = localStorage.getItem('startDate') || ''
+    
+    // 编码成 URL 参数
+    const params = new URLSearchParams({
+      myCity, partnerCity, meetDate, startDate
+    })
+    const link = window.location.origin + window.location.pathname + '?sync=' + encodeURIComponent(params.toString())
+    
+    document.getElementById('syncLinkText').value = link
+    document.getElementById('syncLinkBox').style.display = 'block'
+  }
+
+  // ===================== 复制同步链接 =====================
+  function copySyncLink() {
+    const textarea = document.getElementById('syncLinkText')
+    textarea.select()
+    document.execCommand('copy')
+    const btn = document.querySelector('.copy-btn')
+    btn.textContent = '✅ 已复制！'
+    setTimeout(() => { btn.textContent = '📋 复制链接' }, 2000)
+  }
+
   function toggleSettings() {
     const section = document.getElementById('settingsSection')
     const toggle = document.getElementById('settingsToggle')
