@@ -88,8 +88,18 @@
       font-size: 28px; font-weight: bold; color: #FF6B81;
     }
 
+    /* ===== 设置齿轮按钮 ===== */
+    .settings-toggle {
+      text-align: center; margin-top: 28px;
+      font-size: 22px; color: #ddd;
+      cursor: pointer; transition: all 0.3s;
+      user-select: none;
+    }
+    .settings-toggle:hover { color: #FF6B81; }
+    .settings-toggle.active { color: #FF6B81; transform: rotate(90deg); }
+
     /* ===== 设置区 ===== */
-    .settings-section { margin-top: 32px; }
+    .settings-section { margin-top: 16px; }
     .settings-title {
       font-size: 14px; color: #999; margin-bottom: 12px;
       text-align: center;
@@ -216,9 +226,10 @@
     我们已相爱 <span class="days-number" id="loveDays">0</span> 天
   </div>
 
-  <!-- ===== 设置区 ===== -->
-  <div class="settings-section">
-    <div class="settings-title">⚙️ 设置（只有你能看到）</div>
+  <!-- ===== 设置区（默认隐藏，点齿轮展开） ===== -->
+  <div class="settings-toggle" id="settingsToggle" onclick="toggleSettings()">⚙️</div>
+  <div class="settings-section" id="settingsSection" style="display:none;">
+    <div class="settings-title">⚙️ 设置</div>
     <div class="settings-card">
       <div class="setting-row">
         <span class="setting-label">我的城市</span>
@@ -405,6 +416,19 @@
     const dayOfYear = Math.floor(diff / oneDay)
     const quote = QUOTES[dayOfYear % QUOTES.length]
     document.getElementById('quoteText').textContent = quote
+  }
+
+  // ===================== 展开/收起设置 =====================
+  function toggleSettings() {
+    const section = document.getElementById('settingsSection')
+    const toggle = document.getElementById('settingsToggle')
+    if (section.style.display === 'none') {
+      section.style.display = 'block'
+      toggle.classList.add('active')
+    } else {
+      section.style.display = 'none'
+      toggle.classList.remove('active')
+    }
   }
 
   // ===================== 天气（免费API） =====================
